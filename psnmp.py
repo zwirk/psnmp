@@ -58,7 +58,9 @@ def snmp_getcmd(community, ip, port, OID):
                    ContextData(),
                    ObjectType(ObjectIdentity(OID))))
 
-def snmp_get_next(community, ip, port, OID):
+def snmp_get_next(community, ip, port, OID,logger):
+    # logger передаёт класс logging для сохранения сообщений в лог файл
+    # имя файла должно быть передано logger = psnmp.logger_fuction('filename_log')
     # метод обрабатывает class generator от def snmp_get
     # обрабатываем errors, выдаём тип class 'pysnmp.smi.rfc1902.ObjectType' с OID и значением
     # получаем одно скалярное значение
@@ -66,7 +68,7 @@ def snmp_get_next(community, ip, port, OID):
     errorIndication, errorStatus, errorIndex, varBinds = next(snmp_getcmd(community, ip, port, OID))
     # тут должен быть обработчик errors
 
-    if errors(errorIndication, errorStatus, errorIndex, ip, varBinds, OID):
+    if errors(errorIndication, errorStatus, errorIndex, ip, varBinds, OID, logger):
          for name, val in varBinds:
 
             return (val.prettyPrint(), True)
@@ -74,8 +76,11 @@ def snmp_get_next(community, ip, port, OID):
         logger.error(u'ip = ' + ip + ' OID = ' + OID)
         return ('Error snmp_get_next ip = ' + ip + ' OID = ' + OID, False)
 
-def errors(errorIndication, errorStatus, errorIndex, ip, varBinds, OIDs):
+def errors(errorIndication, errorStatus, errorIndex, ip, varBinds, OIDs, logger):
+    # logger передаёт класс logging для сохранения сообщений в лог файл
+    # имя файла должно быть передано logger = psnmp.logger_fuction('filename_log')
     #обработка ошибок В случае ошибок возвращаем False и пишем в файл
+
     if errorIndication:
         logger.error(u''+ str(errorIndication) + ' ip = ' + ip)
         return False
@@ -93,7 +98,9 @@ def errors(errorIndication, errorStatus, errorIndex, ip, varBinds, OIDs):
         else:
             return True
 
-def snmp_getnextcmd_next(community, ip, port, OID):
+def snmp_getnextcmd_next(community, ip, port, OID, logger):
+    # logger передаёт класс logging для сохранения сообщений в лог файл
+    # имя файла должно быть передано logger = psnmp.logger_fuction('filename_log')
     # метод обрабатывает class generator от def snmp_getnext
     # OID - это список OID в виде list_OID = [OID_ipAdEntAddr,OID_ipAdEntIfIndex,OID_ipAdEntNetMask], где переменные строковые значения
     # в виде '1.2.3.4'
@@ -112,7 +119,7 @@ def snmp_getnextcmd_next(community, ip, port, OID):
         i = 0
         while i <= 0:  # по списку
             errorIndication, errorStatus, errorIndex, varBinds = next(g)
-            if errors(errorIndication, errorStatus, errorIndex, ip_address_host, varBinds, oid):
+            if errors(errorIndication, errorStatus, errorIndex, ip_address_host, varBinds, oid, logger):
                 if str(varBinds).find(oid) != -1:
                     i = 0
                     for name, val in varBinds:
@@ -131,8 +138,8 @@ def snmp_getnextcmd_next(community, ip, port, OID):
 
     return list_result2,flag
 
-
 if __name__ == '__main__':
+
     logger = logger_fuction(filename_log)
 
     print(snmp_get_next(community_snmp, ip_address_host, port_snmp, OID_sysName))
